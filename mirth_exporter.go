@@ -61,12 +61,12 @@ var (
 )
 
 type Exporter struct {
-	jarPath, configPath string
+	cliCommandPath, configPath string
 }
 
-func NewExporter(mccliJarPath, mccliConfigPath string) *Exporter {
+func NewExporter(mccliCommandPath, mccliConfigPath string) *Exporter {
 	return &Exporter{
-		jarPath:    mccliJarPath,
+		cliCommandPath:    mccliCommandPath,
 		configPath: mccliConfigPath,
 	}
 }
@@ -99,7 +99,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 }
 
 func (e *Exporter) fetchStatLines() ([]string, error) {
-	cmd := exec.Command("java", "-jar", e.jarPath, "-c", e.configPath)
+	cmd := exec.Command(e.cliCommandPath, "-c", e.configPath)
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return nil, err
@@ -187,12 +187,12 @@ func main() {
 			"Path under which to expose metrics")
 		mccliConfigPath = flag.String("mccli.config-path", "./mirth-cli-config.properties",
 			"Path to properties file for Mirth Connect CLI")
-		mccliJarPath = flag.String("mccli.jar-path", "./mirth-cli-launcher.jar",
+		mccliCommandPath = flag.String("mccli.command", "mccommand",
 			"Path to jar file for Mirth Connect CLI")
 	)
 	flag.Parse()
 
-	exporter := NewExporter(*mccliJarPath, *mccliConfigPath)
+	exporter := NewExporter(*mccliCommandPath, *mccliConfigPath)
 	prometheus.MustRegister(exporter)
 
 	log.Infof("Starting server: %s", *listenAddress)
